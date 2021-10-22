@@ -1,16 +1,16 @@
-import React from 'react';
-import { View } from 'react-native';
+import React from 'react'
+import { View } from 'react-native'
 
-import { useAuth } from '../../hooks/auth';
+import { useAuth } from '../../hooks/auth'
 
 import { Button } from '../Button'
-import { COLORS } from '../../theme';
+import { COLORS } from '../../theme'
 
-import { styles } from './styles';
+import { styles } from './styles'
 
 export function SignInBox() {
 
-  const { signIn } = useAuth()
+  const { signIn, isSigningIn } = useAuth()
 
   return (
     <View style={styles.container}>
@@ -20,6 +20,7 @@ export function SignInBox() {
         backgroundColor={COLORS.YELLOW}
         icon='github'
         onPress={signIn}
+        isLoading={isSigningIn}
       />
     </View>
   );

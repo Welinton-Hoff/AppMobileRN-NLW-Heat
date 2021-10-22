@@ -1,23 +1,46 @@
-import React from 'react';
-
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView
 } from 'react-native';
 
-import { Message } from '../Message';
+import { io } from 'socket.io-client'
+import { api } from '../../services/api';
+
+import { Message, MessageProps } from '../Message';
 import { styles } from './styles';
+
+import { MESSAGES_EXAMPLE } from '../../utils/messages'
+
+let messagesQueue: MessageProps[] = MESSAGES_EXAMPLE;
+
+const socket = io(String(api.defaults.baseURL))
+socket.on('new_message', (newMessage) => {
+  messagesQueue.push(newMessage)
+})
 
 export function MessageList() {
 
-  const message = {
-    id: '1',
-    text: '#Lets go Build The Future!!',
-    user: {
-      name: 'Welinton Hoff',
-      avatar_url: 'https://github.com/Welinton-Hoff.png',
-    }
-  }
+  const [currentMessages, setCurrentMessages] = useState<MessageProps[]>([])
 
+  useEffect(() => {
+    async function fecthMessages() {
+      const messagesResponse = await api.get<MessageProps[]>('/messages/last3')
+      setCurrentMessages(messagesResponse.data)
+    }
+
+    fecthMessages()
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (messagesQueue.length > 0) {
+        setCurrentMessages(prevState => [messagesQueue[0], prevState[1]])
+        messagesQueue.shift()
+      }
+
+      return () => clearInterval(timer)
+    }, 3000)
+  }, [])
 
   return (
     <ScrollView
@@ -25,10 +48,7 @@ export function MessageList() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps='never'
     >
-      <Message data={message} />
-      <Message data={message} />
-      <Message data={message} />
-      <Message data={message} />
+      {currentMessages.map(message => <Message key={message.id} data={message} />)}
     </ScrollView>
   );
 }
